@@ -2,6 +2,7 @@
 build/
 bin/
 obj/
+compile_commands.json
 
 # Binaries
 *.out
