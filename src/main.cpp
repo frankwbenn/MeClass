@@ -7,6 +7,7 @@
 #include "cgd_utils.h"
 #include "timer.h"
 #include "cli.h"
+#include "management.h"
 
 bool PrintBytes(pid_t pid, uintptr_t address, size_t size)
 {
@@ -161,11 +162,13 @@ public:
 
 int main()
 {
-    Log::Get().SetLevel(Log::e_LogLevel::Warn);
+    Log::Get().SetLevel(Log::e_LogLevel::Info);
 
     DummyClass Dummy;
     std::system("ps aux | grep MeClass"); 
     
+
+    //ObjectPool objs;
     CLIController cli; 
 }
 

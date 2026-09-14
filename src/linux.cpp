@@ -1,4 +1,4 @@
-//Any thing with a linux system call should go here.
+//Anything specific to the linux OS should go here.
 #include "linux.h"
 #include <signal.h>
 #include <fstream>
@@ -25,7 +25,7 @@ bool DoesProcExist(pid_t pid)
     return false;
 }
 
-bool ReadProcMem(pid_t pid, uintptr_t address, void* buffer, size_t size)
+bool ReadProcMem(pid_t pid, uint64_t address, void* buffer, size_t size)
 {
     iovec local_iov;
     local_iov.iov_base = buffer;
@@ -35,6 +35,7 @@ bool ReadProcMem(pid_t pid, uintptr_t address, void* buffer, size_t size)
     remote_iov.iov_base = reinterpret_cast<void*>(address);
     remote_iov.iov_len = size;
 
+    //TODO: Check for partial reads.
     ssize_t nread = process_vm_readv(pid, &local_iov, 1, &remote_iov,1,0);
     if(nread == -1)
     {
@@ -56,7 +57,8 @@ std::string MemoryRegion::toString() const
 
 bool ParseProcMapsLine(const std::string& line, MemoryRegion& region)
 {
-    //example line: "55ea11fd0000-55ea11fd4000 r--p 00000000 fd:00 20717812 /path/to/file"
+    //example line from /proc/pid/maps looks like this: 
+    //"55ea11fd0000-55ea11fd4000 r--p 00000000 fd:00 20717812 /path/to/file"
     const char* ptr = line.data();
     const char* end_ptr = ptr + line.size();
 

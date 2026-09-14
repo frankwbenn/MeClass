@@ -34,14 +34,15 @@ public:
 
 private:    
     e_LogLevel m_LogLevel;
-   //m_OutputTarget;
-
-public:
-    Log()
+   //m_OutputTarget;    
+   Log()
         :m_LogLevel(e_LogLevel::Info)
     {
     }
 
+public:
+    Log(const Log&) = delete;
+    Log& operator=(const Log&) = delete;
     static Log& Get()
     {
         static Log s_Instance;

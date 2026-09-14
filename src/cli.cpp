@@ -1,5 +1,4 @@
 #include <string>
-#include <charconv>
 #include "cli.h"
 #include "linux.h"
 #include "log.h"
@@ -77,7 +76,8 @@ std::string CLIController::GetNextToken(std::string& str)
 void CLIController::RegisterCommands()
 {
    m_CommandMap["proc"] = [this](auto& args) { this->CMDproc(args); }; 
-   //m_CommandMap["struct"] = [this](auto& args) { this->CMDstruct(args); }; 
+   m_CommandMap["struct"] = [this](auto& args) { this->CMDstruct(args); };
+   m_CommandMap["pstruct"] = [this](auto& args) { this->CMDpstruct(args); };
 }
 
 bool CLIController::CheckCMDArgLen(const std::vector<std::string>& args,
@@ -109,7 +109,7 @@ void CLIController::ExecuteCommand(const std::string& name,
     }
     else
     {
-        LOG_INFO("Command {} not found in command map", name);
+        PRINT("No such command: {}.", name);
     }
 }
 
@@ -134,7 +134,7 @@ void CLIController::CMDproc(const std::vector<std::string>& args)
     if (DoesProcExist(pid.value()))
     {
         PRINT("Success. Process {} is active.", pid.value());
-        m_Proc = new Process(pid.value());
+        m_Proc = std::make_unique<Process>(pid.value());
     }
     else
         PRINT("Process {} not found or invalid.", pid.value());
@@ -146,6 +146,55 @@ void CLIController::CMDstruct(const std::vector<std::string>& args)
     //memory address and size. struct command takes 2 arguments which should resolve to
     //a valid memory address within the CLI controller's target process (m_Proc) and a
     //size in number of bytes.
-    if(!CheckCMDArgLen(args,2,"struct"))
-       return;
+    if(!m_Proc)
+    {
+        PRINT("Attach to process first (pid command).");
+        return;
+    }
+    if(!CheckCMDArgLen(args,3,"struct"))
+    {
+        PRINT("Usage: struct <name> <address> <size>");
+        return;
+    }
+
+    
+    std::optional<uint64_t> startPos = FromChars<uint64_t>(args[1]);
+    std::optional<uint> size = FromChars<uint>(args[2]);
+
+    if(!startPos.has_value())
+    {
+        PRINT("Invalid memory address. {}", args[0]);
+        return;
+    }
+    if(!size.has_value())
+    {
+        PRINT("Invalid struct size. {}", args[1]);
+        return;
+    }
+
+    m_Proc->MakeUserStruct(args[0], startPos.value(), size.value());
+
+}
+
+void CLIController::CMDpstruct(const std::vector<std::string>& args)
+{
+    if(!m_Proc)
+    {
+        PRINT("Attach to process first (pid command).");
+        return;
+    }
+    if(!CheckCMDArgLen(args,1,"pstruct"))
+    {
+        PRINT("Usage: psruct <struct name>");
+        return;
+    }
+    if(!m_Proc->GetUserStruct(args[0]))
+    {
+        PRINT("No such struct {}.",args[0]);
+        return;
+    }
+
+    PRINT("Struct {} found.");
+
+
 }

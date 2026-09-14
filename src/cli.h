@@ -4,10 +4,13 @@
 #include <memory>
 #include <unordered_map>
 
+//The CLI Controller is for running in the command line.
+//It is not really designed for release and is mostly so I can easily
+//run and test features.
 class CLIController
 {
 private:
-    std::shared_ptr<Process> m_Proc;
+    std::unique_ptr<Process> m_Proc;
 
     using CMDptr = std::function<void(const std::vector<std::string>&)>;
     std::unordered_map<std::string, CMDptr> m_CommandMap;
@@ -25,6 +28,7 @@ private:
     //-----Command functions
     void CMDproc(const std::vector<std::string>& args);
     void CMDstruct(const std::vector<std::string>& args);
+    void CMDpstruct(const std::vector<std::string>& args);
 };
 
 
